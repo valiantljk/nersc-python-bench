@@ -1,0 +1,6 @@
+artifacts/
+
+*.out
+latest*.txt
+*.png
+*.bmp
