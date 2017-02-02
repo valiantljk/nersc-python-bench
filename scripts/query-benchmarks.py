@@ -11,10 +11,12 @@ import  sys
 import  MySQLdb
 import  numpy as np
 import  pandas as pd
+import  pytz
 
 
 pd.set_option("display.width", None)
 
+TZ = pytz.timezone("America/Los_Angeles")
 
 DATE_FORMAT = "%Y-%m-%d"
 UNIX_EPOCH = datetime.datetime(1970, 1, 1)
@@ -141,7 +143,8 @@ def size_to_nodes_edison(size):
 def report_for_period_ending(benchmark_names, period, ending):
     begin, end = period_ending_to_begin_end(period, ending)
     df = query_by_begin_end(benchmark_names, begin, end)
-    df["timestamp"] = UNIX_EPOCH + pd.to_timedelta(df["timestamp"], "s")
+    df.timestamp = UNIX_EPOCH + pd.to_timedelta(df.timestamp, "s")
+    df.timestamp = df.timestamp.dt.tz_localize(pytz.utc).dt.tz_convert(TZ)
     return df["timestamp bench_name numtasks hostname metric_value".split()].sort_values("timestamp")
 
 
