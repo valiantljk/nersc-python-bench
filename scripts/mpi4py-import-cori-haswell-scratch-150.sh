@@ -10,7 +10,7 @@
 #SBATCH --output=logs/mpi4py-import-cori-haswell-scratch-150-%j.out
 #SBATCH --partition=regular
 #SBATCH --qos=normal
-#SBATCH --time=10
+#SBATCH --time=30
 
 # Configuration.
 
