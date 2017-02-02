@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# module load python/2.7-anaconda
+# python query-benchmarks.py
+
 import  argparse
 import  datetime
 import  os
