@@ -38,6 +38,7 @@ def print_report(df):
     if df.empty:
         return
     print
+    benchmark_names = df.bench_name.unique()
     for name in benchmark_names:
         selection = df.loc[df["bench_name"] == name]
         if selection.empty:
