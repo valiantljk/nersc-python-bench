@@ -49,7 +49,7 @@ rm -rf $env_dir
 # Download mpi4py source.
 
 mpi4py=mpi4py-2.0.0
-wget https://bitbucket.org/mpi4py/mpi4py/downloads/$mpi4py.tar.gz
+wget -O $mpi4py.tar.gz https://bitbucket.org/mpi4py/mpi4py/downloads/$mpi4py.tar.gz
 
 # Download Pynamic 1.3 source.
 
