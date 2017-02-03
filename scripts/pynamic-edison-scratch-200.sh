@@ -13,7 +13,7 @@
 
 # Configuration.
 
-commit=false
+commit=true
 
 site=nersc-python-bench-site
 target_dir=$SCRATCH/$site
