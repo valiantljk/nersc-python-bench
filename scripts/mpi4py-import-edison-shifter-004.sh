@@ -17,6 +17,8 @@ commit=true
 
 # Run benchmark.
 
+module load shifter
+
 export OMP_NUM_THREADS=1
 
 output=tmp/latest-$SLURM_JOB_NAME.txt
