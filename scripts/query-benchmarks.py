@@ -162,7 +162,6 @@ def timestamp(datetime):
 
 def query_by_begin_end(benchmark_names, begin, end):
     sql, params = sql_from_timestamp_range(benchmark_names, begin, end)
-    print sql, params
     return pd.read_sql(sql, broker_database_connection(), params = params)
 
 
