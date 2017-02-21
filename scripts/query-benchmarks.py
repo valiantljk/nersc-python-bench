@@ -112,7 +112,7 @@ def assert_resource_cori_haswell(resource):
 
 def assert_resource_edison(resource):
     if resource != "datawarp":
-        pass        
+        return
     raise ValueError
 
 
@@ -175,10 +175,11 @@ def sql_from_timestamp_range(benchmark_names, begin, end):
         hostname 
     from monitor
     where bench_name in %s
-        and metric_value is not null
-        and notes is null
         and timestamp between %s and %s""", 
         (benchmark_names, begin, end))
+
+#       and metric_value is not null
+#       and notes is null
 
 
 def broker_database_connection():
