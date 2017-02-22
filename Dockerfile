@@ -8,7 +8,15 @@ RUN                                 \
     apt-get update              &&  \
     apt-get install -y              \
         build-essential             \
-        gfortran
+        gfortran                    \
+        python                      \
+        python-pip                  \
+        zlib1g-dev
+
+# Install python packages
+
+RUN                                                                         \
+    pip install astropy
 
 # Install MPICH
 
@@ -24,21 +32,6 @@ RUN                                                                         \
     make install                                                        &&  \
     cd /usr/local/src                                                   &&  \
     rm -rf mpich-3.2
-
-# Install Miniconda and packages
-
-ADD https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh   \
-    /usr/local/src/
-
-RUN                                                                         \
-    cd /usr/local/src                                                   &&  \
-    /bin/bash ./Miniconda2-latest-Linux-x86_64.sh -b -p /miniconda2
-
-ENV PATH /miniconda2/bin:$PATH
-
-RUN                                                                         \
-    conda upgrade --yes --all                                           &&  \
-    conda install --yes astropy
 
 # Install mpi4py
 
@@ -69,4 +62,4 @@ RUN                                                                         \
     cd /usr/local/src                                                   &&  \
     tar zxf 1.3.tar.gz                                                  &&  \
     cd pynamic-1.3/pynamic-pyMPI-2.6a1                                  &&  \
-    python ./config_pynamic.py 495 1850 -e -u 215 1850 -n 100 -t -c --with-libs="m" "CPPFLAGS=-DPYMPI_MACOSX"
+    python ./config_pynamic.py 495 1850 -e -u 215 1850 -n 100 -t ; exit 0
