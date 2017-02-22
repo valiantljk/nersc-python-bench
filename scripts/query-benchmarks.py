@@ -67,7 +67,8 @@ def parse_arguments():
             choices = SIZES)
     parser.add_argument("--period", "-p",
             help = "length of sampling period (days) [%(default)s]", 
-            default = 60)
+            default = 60,
+            type = int)
     parser.add_argument("--ending", "-e",
             help = "sampling period UTC end date YYYY-MM-DD [today]")
     return parser.parse_args()
