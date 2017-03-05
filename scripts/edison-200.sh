@@ -4,6 +4,7 @@ job_names=(
     mpi4py-import-edison-common-200
     mpi4py-import-edison-project-200
     mpi4py-import-edison-scratch-200
+    mpi4py-import-edison-shifter-200
     pynamic-edison-common-200
     pynamic-edison-project-200
     pynamic-edison-scratch-200

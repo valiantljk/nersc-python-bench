@@ -4,6 +4,7 @@ job_names=(
     mpi4py-import-cori-haswell-common-150
     mpi4py-import-cori-haswell-project-150
     mpi4py-import-cori-haswell-scratch-150
+    mpi4py-import-cori-haswell-shifter-150
     pynamic-cori-haswell-common-150
     pynamic-cori-haswell-project-150
     pynamic-cori-haswell-scratch-150
