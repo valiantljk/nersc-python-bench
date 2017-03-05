@@ -47,11 +47,13 @@ RUN                                                                         \
     cd /usr/local/src                                                   &&  \
     rm -rf mpi4py-2.0.0
 
-# Install mpi4py-import benchmark script
+# Install mpi4py-import benchmark script and benchmark script
 
 ADD scripts/mpi4py-import.py /usr/local/bin
-
 RUN chmod a+x /usr/local/bin/mpi4py-import.py
+
+ADD scripts/report-benchmark.py /usr/local/bin
+RUN chmod a+x /usr/local/bin/report-benchmark.py
 
 # Install pynamic v1.3
 
