@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --account=nstaff
-#SBATCH --image=docker:rcthomas/nersc-python-bench:0.1.3
+#SBATCH --image=docker:rcthomas/nersc-python-bench:0.1.5
 #SBATCH --job-name=mpi4py-import-edison-shifter-200
 #SBATCH --mail-type=FAIL
 #SBATCH --mail-user=rcthomas@lbl.gov
