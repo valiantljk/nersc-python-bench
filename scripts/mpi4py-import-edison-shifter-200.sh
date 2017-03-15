@@ -15,6 +15,8 @@
 
 commit=true
 
+module load shifter
+
 # Initialize benchmark result.
 
 if [ $commit = true ]; then
@@ -22,8 +24,6 @@ if [ $commit = true ]; then
 fi
 
 # Run benchmark.
-
-module load shifter
 
 export OMP_NUM_THREADS=1
 
