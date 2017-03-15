@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=nstaff
 #SBATCH --constraint=haswell
-#SBATCH --image=docker:rcthomas/nersc-python-bench:0.1.5
+#SBATCH --image=docker:rcthomas/nersc-python-bench:0.1.6
 #SBATCH --job-name=mpi4py-import-cori-haswell-shifter-003
 #SBATCH --mail-type=FAIL
 #SBATCH --mail-user=rcthomas@lbl.gov
