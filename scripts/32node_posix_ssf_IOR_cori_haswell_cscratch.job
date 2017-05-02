@@ -1,1 +1,33 @@
-/project/projectdirs/mpccc/fbench/IOR_CSCRATCH/IOR_HSW/32node_posix_ssf/IOR.job
+#!/bin/ksh
+#SBATCH -N 32 -t 30 -J 32node_posix_ssf -p regular  -C haswell 
+
+SCRDIR=$SCRATCH
+
+. /opt/modules/default/init/ksh
+module load lustre-cray_ari_s
+NOST=$(lfs df $SCRDIR | grep OST: | wc -l)  # number of OSTs in file system
+if (( $NOST == 0 )) ; then
+  echo "Must be run on a Lustre file system. Not $SCRDIR"
+  exit
+fi
+TESTDIR=$SCRDIR/IOR_REGULAR/$SLURM_JOB_NAME/$JOBID
+(rm -rf $TESTDIR)
+mkdir $TESTDIR || exit
+NOST=120
+lfs setstripe -s 8m -c $NOST $TESTDIR || exit
+
+TRANSFER_SIZE=8 # in MiB
+DATA_TB=4   # total file size in TiB
+RPN=4        # ranks per node
+NODES=32     # max of 960 compute nodes
+RANKS=$(( $NODES * $RPN ))     # fully packed
+FPO=$(( $RANKS/$NOST ))        # files per OST
+SEGMENTS=$(( $DATA_TB*1024*1024/$TRANSFER_SIZE/$RANKS ))  
+JOBID=${SLURM_JOBID:-$$}
+
+OPTIONS="-a POSIX -C -e -g -k -b ${TRANSFER_SIZE}m -t ${TRANSFER_SIZE}m -s $SEGMENTS -o $TESTDIR/IOR_file -v"
+OUT=${SLURM_JOB_NAME}_${RANKS}ranks_${RPN}rpn_${NOST}osts_${NODES}nodes_${JOBID}
+srun -n $RANKS --ntasks-per-node $RPN ../IOR -w $OPTIONS >> ${OUT}.IOR  # write test
+srun -n $RANKS --ntasks-per-node $RPN ../IOR -r $OPTIONS >> ${OUT}.IOR  # read test
+rm -rf $TESTDIR
+chgrp fbench *
