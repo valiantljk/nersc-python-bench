@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -N 1 -t 10 -J 1node_mpiio_fpp -p debug -C haswell --mail-type=FAIL --mail-user=jalnliu@lbl.gov --account=nstaff
+#SBATCH -N 1 --ntasks-per-node=32 -t 10 -J 1node_mpiio_fpp -p debug -C haswell --mail-type=FAIL --mail-user=jalnliu@lbl.gov --account=nstaff
 
 SCRDIR=$SCRATCH
 
