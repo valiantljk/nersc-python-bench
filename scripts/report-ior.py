@@ -82,14 +82,13 @@ Example:
 
 # In[3]:
 
-sys.path.append('/global/common/cori/software/python/2.7-anaconda/lib/python2.7/site-packages')
 import  argparse
 import  os
 import  sys
 import  time
 
 import  MySQLdb
-
+sys.path.append('/global/common/cori/software/python/2.7-anaconda/lib/python2.7/site-packages')
 
 def from_environ(name, test = False):
     """Return environment variable if defined (placeholder in test mode)."""
