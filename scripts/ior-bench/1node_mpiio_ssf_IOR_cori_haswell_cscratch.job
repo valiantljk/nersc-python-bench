@@ -1,5 +1,5 @@
 #!/bin/ksh
-#SBATCH -N 1 -t 60 -J 1node_mpiio_ssf -p regular -C haswell
+#SBATCH -N 1 --ntasks-per-node=32 -t 30 -J 1node_mpiio_ssf -p regular -C haswell --mail-type=FAIL --mail-user=jalnliu@lbl.gov --account=nstaff
 
 SCRDIR=$SCRATCH
 
@@ -26,7 +26,10 @@ export IOR_HINT__MPI__romio_cb_write=disable
 
 lfs setstripe -s 1m -c $RPN $TESTDIR || exit
 
-for TRANSFER_SIZE in 1000000 100000 10000 ; do
+python report-ior.py initialize 1node_mpiio_ssf_write
+python report-ior.py initialize 1node_mpiio_ssf_read
+
+for TRANSFER_SIZE in 1000000 ; do
   OPTIONS="-a MPIIO -c -C -H -g -k -b 1000000 -t $TRANSFER_SIZE -s $SEGMENTS -o $TESTDIR/IOR_file -v"
   OUT=${SLURM_JOB_NAME}_${RANKS}ranks_${TRANSFER_SIZE}_${JOBID}
   srun -n $RANKS --ntasks-per-node $RPN ../IOR -w $OPTIONS >> ${OUT}.IOR  # write test
@@ -36,3 +39,7 @@ for TRANSFER_SIZE in 1000000 100000 10000 ; do
 done
 rm -rf $TESTDIR
 chgrp fbench *
+
+python report-ior.py finalize 1node_mpiio_ssf_write $(grep 'Max Write' ${OUT}.IOR | awk '{print $3}' )
+python report-ior.py finalize 1node_mpiio_ssf_read $(grep 'Max Read' ${OUT}.IOR | awk '{print $3}' )
+

@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -N 1 --ntasks-per-node=32 -t 10 -J 1node_mpiio_fpp -p debug -C haswell --mail-type=FAIL --mail-user=jalnliu@lbl.gov --account=nstaff
+#SBATCH -N 1 --ntasks-per-node=32 -t 30 -J 1node_mpiio_fpp -p regular -C haswell --mail-type=FAIL --mail-user=jalnliu@lbl.gov --account=nstaff
 
 SCRDIR=$SCRATCH
 
@@ -22,7 +22,8 @@ RANKS=$(( $RPN ))     # only 1 node
 SEGMENTS=$(( 206158/$RANKS ))   # SOW
 # Initialize Benchmark Result
 
-python report-ior.py initialize
+python report-ior.py initialize 1node_mpiio_fpp_write
+python report-ior.py initialize 1node_mpiio_fpp_read
 
 for TRANSFER_SIZE in 1000000; do
   OPTIONS="-a MPIIO -F -C -g -k -b 1000000 -t $TRANSFER_SIZE -s $SEGMENTS -o $TESTDIR/IOR_file -v"
@@ -37,4 +38,5 @@ chgrp fbench *
 
 # Finalize Benchmark result
 
-python report-ior.py finalize $(grep 'Max Write' ${OUT}.IOR | awk '{print $3}' ) $(grep 'Max Read' ${OUT}.IOR | awk '{print $3}' )
+python report-ior.py finalize 1node_mpiio_fpp_write $(grep 'Max Write' ${OUT}.IOR | awk '{print $3}' ) 
+python report-ior.py finalize 1node_mpiio_fpp_read $(grep 'Max Read' ${OUT}.IOR | awk '{print $3}' )

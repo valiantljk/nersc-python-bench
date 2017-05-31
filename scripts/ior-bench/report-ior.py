@@ -160,13 +160,14 @@ class Update (Command):
     """Update of existing benchmark result."""
 
     @classmethod
-    def within_job(cls, metric_value, test = False):
+    def within_job(cls, bench_name, metric_value, test = False):
         """Construct benchmark update using job information."""
         jobid = from_environ("SLURM_JOB_ID", test)
-        return cls(jobid, metric_value)
+        return cls(jobid, bench_name, metric_value)
 
-    def __init__(self, jobid, metric_value):
+    def __init__(self, jobid, bench_name, metric_value):
         self.jobid        = jobid
+	self.bench_name   = bench_name
         self.metric_value = metric_value
         
 
@@ -188,7 +189,7 @@ def initialize(args):
 
 def finalize(args):
     """Finalize benchmark result with a metric value."""
-    return Update.within_job(args.metric_value, args.test)
+    return Update.within_job(args.bench_name, args.metric_value, args.test)
 
 
 # In[16]:
@@ -222,6 +223,7 @@ def parse_arguments():
     # Finalize sub-command that just takes the metric value.
 
     final_parser = subparsers.add_parser("finalize")
+    final_parser.add_argument("bench_name", help = "benchmark name")
     final_parser.add_argument("metric_value", help = "metric value", type = float)  
     final_parser.set_defaults(func = finalize)
 
