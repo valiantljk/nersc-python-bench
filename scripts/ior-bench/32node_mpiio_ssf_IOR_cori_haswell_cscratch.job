@@ -1,10 +1,10 @@
 #!/bin/ksh
-#SBATCH -N 32 -t 30 -J 32node_mpiio_ssf -p regular  -C haswell
-
+#SBATCH -N 32 --ntasks-per-node=32 -t 30 -J 32node_mpiio_ssf -p regular -C haswell --mail-type=FAIL --mail-user=jalnliu@lbl.gov --account=nstaff
 SCRDIR=$SCRATCH
 
 . /opt/modules/default/init/ksh
 module load lustre-cray_ari_s
+module load python/2.7-anaconda
 NOST=$(lfs df $SCRDIR | grep OST: | wc -l)  # number of OSTs in file system
 if (( $NOST == 0 )) ; then
   echo "Must be run on a Lustre file system. Not $SCRDIR"
@@ -33,8 +33,13 @@ export IOR_HINT__MPI__romio_cb_write=disable
 # export IOR_HINT__MPI__cray_cb_nodes_multiplier=$MULTIPLIER
 # export IOR_HINT__MPI__romio_no_indep_rw=true
 
+python report-ior.py initialize 32node_mpiio_ssf_write
+python report-ior.py initialize 32node_mpiio_ssf_read
+
 OUT=${SLURM_JOB_NAME}_${RANKS}ranks_${RPN}rpn_${NOST}osts_${NODES}nodes_${JOBID}
 srun -n $RANKS --ntasks-per-node $RPN  ../IOR $OPTIONS -w -s $SEGMENTS >> ${OUT}.IOR
+python report-ior.py finalize 32node_mpiio_ssf_write $(grep 'Max Write' ${OUT}.IOR | awk '{print $3}' )
 srun -n $RANKS --ntasks-per-node $RPN  ../IOR $OPTIONS -r -s $SEGMENTS >> ${OUT}.IOR
+python report-ior.py finalize 32node_mpiio_ssf_read $(grep 'Max Read' ${OUT}.IOR | awk '{print $3}' )
 rm -rf $TESTDIR
 chgrp fbench *

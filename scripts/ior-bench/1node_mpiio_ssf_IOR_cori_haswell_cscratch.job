@@ -5,6 +5,7 @@ SCRDIR=$SCRATCH
 
 . /opt/modules/default/init/ksh
 module load lustre-cray_ari_s
+module load python/2.7-anaconda
 NOST=$(lfs df $SCRDIR | grep OST: | wc -l)  # number of OSTs in file system
 if (( $NOST == 0 )) ; then
   echo "Must be run on a Lustre file system. Not $SCRDIR"
@@ -29,8 +30,8 @@ lfs setstripe -s 1m -c $RPN $TESTDIR || exit
 python report-ior.py initialize 1node_mpiio_ssf_write
 python report-ior.py initialize 1node_mpiio_ssf_read
 
-for TRANSFER_SIZE in 1000000 ; do
-  OPTIONS="-a MPIIO -c -C -H -g -k -b 1000000 -t $TRANSFER_SIZE -s $SEGMENTS -o $TESTDIR/IOR_file -v"
+for TRANSFER_SIZE in 100000 ; do
+  OPTIONS="-a MPIIO -c -C -H -g -k -b 100000 -t $TRANSFER_SIZE -s $SEGMENTS -o $TESTDIR/IOR_file -v"
   OUT=${SLURM_JOB_NAME}_${RANKS}ranks_${TRANSFER_SIZE}_${JOBID}
   srun -n $RANKS --ntasks-per-node $RPN ../IOR -w $OPTIONS >> ${OUT}.IOR  # write test
   srun -n $RANKS --ntasks-per-node $RPN ../IOR -r $OPTIONS >> ${OUT}.IOR  # read test

@@ -4,6 +4,7 @@
 SCRDIR=$SCRATCH
 
 module load lustre-cray_ari_s
+module load python/2.7-anaconda
 NOST=$(lfs df $SCRDIR | grep OST: | wc -l)  # number of OSTs in file system
 if (( $NOST == 0 )) ; then
   echo "Must run on a Lustre file system. Not $SCRDIR"
@@ -25,18 +26,14 @@ SEGMENTS=$(( 206158/$RANKS ))   # SOW
 python report-ior.py initialize 1node_mpiio_fpp_write
 python report-ior.py initialize 1node_mpiio_fpp_read
 
-for TRANSFER_SIZE in 1000000; do
-  OPTIONS="-a MPIIO -F -C -g -k -b 1000000 -t $TRANSFER_SIZE -s $SEGMENTS -o $TESTDIR/IOR_file -v"
-  OUT=${SLURM_JOB_NAME}_${RANKS}ranks_${TRANSFER_SIZE}_${JOBID}
-  srun -n $RANKS --ntasks-per-node $RPN ../IOR -w $OPTIONS >> ${OUT}.IOR  # write test
-  srun -n $RANKS --ntasks-per-node $RPN ../IOR -r $OPTIONS >> ${OUT}.IOR  # read test
-  SEGMENTS=$(( $SEGMENTS/4 ))
-  rm $TESTDIR/IOR_file*
-done
+TRANSFER_SIZE=100000
+OPTIONS="-a MPIIO -F -C -g -k -b 100000 -t $TRANSFER_SIZE -s $SEGMENTS -o $TESTDIR/IOR_file -v"
+OUT=${SLURM_JOB_NAME}_${RANKS}ranks_${TRANSFER_SIZE}_${JOBID}
+srun -n $RANKS --ntasks-per-node $RPN ../IOR -w $OPTIONS >> ${OUT}.IOR  # write test
+python report-ior.py finalize 1node_mpiio_fpp_write $(grep 'Max Write' ${OUT}.IOR | awk '{print $3}' )
+
+srun -n $RANKS --ntasks-per-node $RPN ../IOR -r $OPTIONS >> ${OUT}.IOR  # read test
+python report-ior.py finalize 1node_mpiio_fpp_read $(grep 'Max Read' ${OUT}.IOR | awk '{print $3}' )
+rm $TESTDIR/IOR_file*
 rm -rf $TESTDIR
 chgrp fbench *
-
-# Finalize Benchmark result
-
-python report-ior.py finalize 1node_mpiio_fpp_write $(grep 'Max Write' ${OUT}.IOR | awk '{print $3}' ) 
-python report-ior.py finalize 1node_mpiio_fpp_read $(grep 'Max Read' ${OUT}.IOR | awk '{print $3}' )

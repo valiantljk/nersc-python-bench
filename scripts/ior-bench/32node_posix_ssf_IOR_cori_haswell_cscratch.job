@@ -1,10 +1,10 @@
 #!/bin/ksh
-#SBATCH -N 32 -t 30 -J 32node_posix_ssf -p regular  -C haswell 
-
+#SBATCH -N 32 --ntasks-per-node=32 -t 30 -J 32node_posix_ssf -p regular -C haswell --mail-type=FAIL --mail-user=jalnliu@lbl.gov --account=nstaff
 SCRDIR=$SCRATCH
 
 . /opt/modules/default/init/ksh
 module load lustre-cray_ari_s
+module load python/2.7-anaconda
 NOST=$(lfs df $SCRDIR | grep OST: | wc -l)  # number of OSTs in file system
 if (( $NOST == 0 )) ; then
   echo "Must be run on a Lustre file system. Not $SCRDIR"
@@ -25,9 +25,15 @@ FPO=$(( $RANKS/$NOST ))        # files per OST
 SEGMENTS=$(( $DATA_TB*1024*1024/$TRANSFER_SIZE/$RANKS ))  
 JOBID=${SLURM_JOBID:-$$}
 
+python report-ior.py initialize 32node_posix_ssf_write
+python report-ior.py initialize 32node_posix_ssf_read
+
 OPTIONS="-a POSIX -C -e -g -k -b ${TRANSFER_SIZE}m -t ${TRANSFER_SIZE}m -s $SEGMENTS -o $TESTDIR/IOR_file -v"
 OUT=${SLURM_JOB_NAME}_${RANKS}ranks_${RPN}rpn_${NOST}osts_${NODES}nodes_${JOBID}
 srun -n $RANKS --ntasks-per-node $RPN ../IOR -w $OPTIONS >> ${OUT}.IOR  # write test
+python report-ior.py finalize 32node_posix_ssf_write $(grep 'Max Write' ${OUT}.IOR | awk '{print $3}' )
 srun -n $RANKS --ntasks-per-node $RPN ../IOR -r $OPTIONS >> ${OUT}.IOR  # read test
+python report-ior.py finalize 32node_posix_ssf_read $(grep 'Max Read' ${OUT}.IOR | awk '{print $3}' )
 rm -rf $TESTDIR
 chgrp fbench *
+
