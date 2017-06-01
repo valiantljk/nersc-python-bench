@@ -25,18 +25,13 @@ SEGMENTS=$(( 206158/$RANKS ))   # SOW
 python report-ior.py initialize 1node_posix_fpp_write
 python report-ior.py initialize 1node_posix_fpp_read
 
-for TRANSFER_SIZE in 100000 ; do
-  OPTIONS="-a POSIX -F -C -e -g -k -b 100000 -t $TRANSFER_SIZE -s $SEGMENTS -o $TESTDIR/IOR_file -v"
-  OUT=${SLURM_JOB_NAME}_${RANKS}ranks_${TRANSFER_SIZE}_${JOBID}
-  srun -n $RANKS --ntasks-per-node $RPN ../IOR -w $OPTIONS >> ${OUT}.IOR  # write test
-  srun -n $RANKS --ntasks-per-node $RPN ../IOR -r $OPTIONS >> ${OUT}.IOR  # read test
-  SEGMENTS=$(( $SEGMENTS/4 ))
-  rm $TESTDIR/IOR_file*
-done
+TRANSFER_SIZE=100000
+OPTIONS="-a POSIX -F -C -e -g -k -b 1000000 -t $TRANSFER_SIZE -s $SEGMENTS -o $TESTDIR/IOR_file -v"
+OUT=${SLURM_JOB_NAME}_${RANKS}ranks_${TRANSFER_SIZE}_${JOBID}
+srun -n $RANKS --ntasks-per-node $RPN ../IOR -w $OPTIONS >> ${OUT}.IOR  # write test
+srun -n $RANKS --ntasks-per-node $RPN ../IOR -r $OPTIONS >> ${OUT}.IOR  # read test
+rm $TESTDIR/IOR_file*
 rm -rf $TESTDIR
 chgrp fbench *
-
-#touch $SCRATCH/Cori_Perf/IOR/$SLURM_JOB_ID
-
 python report-ior.py finalize 1node_posix_fpp_write $(grep 'Max Write' ${OUT}.IOR | awk '{print $3}' )
 python report-ior.py finalize 1node_posix_fpp_read $(grep 'Max Read' ${OUT}.IOR | awk '{print $3}' )

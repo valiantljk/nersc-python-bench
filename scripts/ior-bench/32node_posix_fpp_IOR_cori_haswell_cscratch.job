@@ -15,7 +15,7 @@ TESTDIR=$SCRDIR/IOR_REGULAR/$SLURM_JOB_NAME/${JOBID}
 mkdir $TESTDIR || exit
 lfs setstripe -s 1m -c 1 $TESTDIR || exit
 
-TRANSFER_SIZE=100000
+TRANSFER_SIZE=1000000
 MPN_GB=192    # 1.5 of cori node memory, 128
 RPN=32        # ranks per node
 NODES=32     # 32 compute nodes
@@ -30,6 +30,6 @@ OUT=${SLURM_JOB_NAME}_${RANKS}ranks_${NODES}nodes_${FPO}fpo_${TRANSFER_SIZE}_${M
 srun -n $RANKS --ntasks-per-node $RPN ../IOR -w $OPTIONS >> ${OUT}.IOR  # write test
 python report-ior.py finalize 32node_posix_fpp_write $(grep 'Max Write' ${OUT}.IOR | awk '{print $3}' )
 srun -n $RANKS --ntasks-per-node $RPN ../IOR -r $OPTIONS >> ${OUT}.IOR  # read test
-python report-ior.py finalize 32node_posix_fpp_write $(grep 'Max Write' ${OUT}.IOR | awk '{print $3}' )
+python report-ior.py finalize 32node_posix_fpp_read $(grep 'Max Read' ${OUT}.IOR | awk '{print $3}' )
 rm -rf $TESTDIR
 chgrp fbench *

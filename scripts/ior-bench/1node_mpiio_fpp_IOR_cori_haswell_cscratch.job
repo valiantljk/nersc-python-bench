@@ -26,8 +26,8 @@ SEGMENTS=$(( 206158/$RANKS ))   # SOW
 python report-ior.py initialize 1node_mpiio_fpp_write
 python report-ior.py initialize 1node_mpiio_fpp_read
 
-TRANSFER_SIZE=100000
-OPTIONS="-a MPIIO -F -C -g -k -b 100000 -t $TRANSFER_SIZE -s $SEGMENTS -o $TESTDIR/IOR_file -v"
+TRANSFER_SIZE=1000000
+OPTIONS="-a MPIIO -F -C -g -k -b 1000000 -t $TRANSFER_SIZE -s $SEGMENTS -o $TESTDIR/IOR_file -v"
 OUT=${SLURM_JOB_NAME}_${RANKS}ranks_${TRANSFER_SIZE}_${JOBID}
 srun -n $RANKS --ntasks-per-node $RPN ../IOR -w $OPTIONS >> ${OUT}.IOR  # write test
 python report-ior.py finalize 1node_mpiio_fpp_write $(grep 'Max Write' ${OUT}.IOR | awk '{print $3}' )

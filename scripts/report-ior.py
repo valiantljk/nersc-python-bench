@@ -65,7 +65,7 @@ Example:
     A two-phase initialize/finalize report is carried out in the following way.
     The initialize step is just::
 
-        python report-benchmark.py initialize
+        python report-benchmark.py initialize  bench_name # modified to work with ior's test, where read/write are done in one job
 
     Then the benchmark runs.  Suppose you extract a result and store it in a
     shell variable called "$result."  Finalize the benchmark record with this
@@ -120,16 +120,15 @@ class Insert (Command):
     """Insertion of benchmark result or a placeholder result."""
 
     @classmethod
-    def within_job(cls, test = False):
+    def within_job(cls,bench_name, test = False):
         """Construct placeholder benchmark insert using job environment information."""
-        bench_name = from_environ("SLURM_JOB_NAME", test)
         timestamp  = int(time.time())
         jobid      = from_environ("SLURM_JOB_ID", test)
         numtasks   = from_environ("SLURM_NTASKS", test)
         hostname   = from_environ("NERSC_HOST", test)
-        return cls(bench_name, timestamp, jobid, numtasks, hostname, "NULL", "NULL")
+        return cls(bench_name, timestamp, jobid, numtasks, hostname, "NULL")
 
-    def __init__(self, bench_name, timestamp, jobid, numtasks, hostname, metric_value,seconds, metric_units = "MB/s", 
+    def __init__(self, bench_name, timestamp, jobid, numtasks, hostname, metric_value, metric_units = "MB/s", 
             apid = 0):
         self.bench_name   = bench_name
         self.timestamp    = timestamp
@@ -137,13 +136,12 @@ class Insert (Command):
         self.numtasks     = numtasks
         self.hostname     = hostname
         self.metric_value = metric_value
-        self.seconds = seconds
         self.metric_units = metric_units
         self.apid         = apid
 
     def _define_sql(self):
         text  = "insert into monitor "
-        text += "(bench_name, timestamp, jobid, numtasks, hostname, metric_value, seconds, metric_units, apid) "
+        text += "(bench_name, timestamp, jobid, numtasks, hostname, metric_value, metric_units, apid) "
         text += "values ("
         text += "'{}', ".format(str(self.bench_name))
         text += "{}, ".format(str(self.timestamp))
@@ -151,7 +149,6 @@ class Insert (Command):
         text += "{}, ".format(str(self.numtasks))
         text += "'{}', ".format(str(self.hostname))
         text += "{}, ".format(str(self.metric_value))
-        text += "{}, ".format(str(self.seconds))
         text += "'{}', ".format(str(self.metric_units))
         text += "{})".format(str(self.apid))
         return text
@@ -163,35 +160,36 @@ class Update (Command):
     """Update of existing benchmark result."""
 
     @classmethod
-    def within_job(cls, metric_value, seconds, test = False):
+    def within_job(cls, bench_name, metric_value, test = False):
         """Construct benchmark update using job information."""
         jobid = from_environ("SLURM_JOB_ID", test)
-        return cls(jobid, metric_value,seconds)
+        return cls(jobid, bench_name, metric_value)
 
-    def __init__(self, jobid, metric_value, seconds):
+    def __init__(self, jobid, bench_name, metric_value):
         self.jobid        = jobid
+	self.bench_name   = bench_name
         self.metric_value = metric_value
-        self.seconds = seconds
+        
 
     def _define_sql(self):
-        return "update monitor set metric_value={},seconds={} where jobid='{}'".format(self.metric_value,self.seconds, self.jobid)
+        return "update monitor set metric_value={} where jobid='{}' and bench_name='{}'".format(self.metric_value, self.jobid, self.bench_name)
 
 
 # In[14]:
 
 def insert(args):
     """Insert fully-defined benchmark result (use this for backfill)."""
-    return Insert(args.bench_name, args.timestamp, args.jobid, args.numtasks, args.hostname, args.metric_value,args.seconds)
+    return Insert(args.bench_name, args.timestamp, args.jobid, args.numtasks, args.hostname, args.metric_value)
 
 
 def initialize(args):
     """Initialize benchmark result with a placeholder."""
-    return Insert.within_job(args.test)
+    return Insert.within_job(args.bench_name, args.test)
 
 
 def finalize(args):
     """Finalize benchmark result with a metric value."""
-    return Update.within_job(args.metric_value, args.seconds, args.test)
+    return Update.within_job(args.bench_name, args.metric_value, args.test)
 
 
 # In[16]:
@@ -214,20 +212,19 @@ def parse_arguments():
     insert_parser.add_argument("jobid"       , help = "batch job identifier"                  )
     insert_parser.add_argument("numtasks"    , help = "number of tasks"         , type = int  )
     insert_parser.add_argument("hostname"    , help = "hostname/system"                       )
-    insert_parser.add_argument("metric_value", help = "write"            , type = float)
-    insert_parser.add_argument("seconds", help = "read"            , type = float)
+    insert_parser.add_argument("metric_value", help = "metric value"            , type = float)
     insert_parser.set_defaults(func = insert)
 
     # Initialize sub-command where context provides everything.
 
     init_parser = subparsers.add_parser("initialize")
     init_parser.set_defaults(func = initialize)
-
+    init_parser.add_argument("bench_name", help = "benchmark name")
     # Finalize sub-command that just takes the metric value.
 
     final_parser = subparsers.add_parser("finalize")
-    final_parser.add_argument("metric_value", help = "write", type = float) # write
-    final_parser.add_argument("seconds", help = "read", type = float) # read
+    final_parser.add_argument("bench_name", help = "benchmark name")
+    final_parser.add_argument("metric_value", help = "metric value", type = float)  
     final_parser.set_defaults(func = finalize)
 
     # Parse args, set verbose if test mode, return.

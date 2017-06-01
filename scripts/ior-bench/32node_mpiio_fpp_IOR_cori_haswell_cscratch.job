@@ -18,8 +18,7 @@ lfs setstripe -s 1m -c 1 $TESTDIR || exit
 python report-ior.py initialize 32node_mpiio_fpp_write
 python report-ior.py initialize 32node_mpiio_fpp_read
 
-#for TRANSFER_SIZE in 1000000 100000 10000 ; do
-TRANSFER_SIZE=100000
+TRANSFER_SIZE=1000000
 MPN_GB=192    # 1.5 of cori node memory, 128
 RPN=32        # ranks per node
 NODES=32      # 
@@ -32,7 +31,6 @@ OPTIONS="-a MPIIO -F -c -C -g -k -H -v -b $TRANSFER_SIZE -t $TRANSFER_SIZE -s $S
 export IOR_HINT__MPI__romio_cb_read=disable
 export IOR_HINT__MPI__romio_cb_write=disable
 
-#OUT=${SLURM_JOB_NAME}_${RANKS}ranks_${RPN}rpn_${NOST}osts_${NODES}nodes_${JOBID}
 OUT=${SLURM_JOB_NAME}_${RANKS}ranks_${NODES}nodes_${FPO}fpo_${TRANSFER_SIZE}_${MPN_GB}gb_${JOBID}
 srun -n $RANKS --ntasks-per-node $RPN  ../IOR $OPTIONS -w  >> ${OUT}.IOR
 python report-ior.py finalize 32node_mpiio_fpp_write $(grep 'Max Write' ${OUT}.IOR | awk '{print $3}' )
