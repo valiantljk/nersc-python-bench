@@ -1,0 +1,10 @@
+#!/bin/sh -l
+JOB=*IOR.job
+
+DIR="/global/cscratch1/sd/fbench/nersc-ior-bench/ior-bench/scripts/ior-bench"
+echo $DIR
+cd $DIR
+for TEST in $DIR/*.job ; do
+  echo Submit $TEST
+  sbatch $SLURM_OPTS $TEST
+done

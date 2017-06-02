@@ -4,7 +4,6 @@
 SCRDIR=$SCRATCH
 
 . /opt/modules/default/init/ksh
-module load lustre-cray_ari_s
 module load python/2.7-anaconda
 NOST=$(lfs df $SCRDIR | grep OST: | wc -l)  # number of OSTs in file system
 if (( $NOST == 0 )) ; then
@@ -36,7 +35,6 @@ for TRANSFER_SIZE in 1000000 ; do
   srun -n $RANKS --ntasks-per-node $RPN ../IOR -w $OPTIONS >> ${OUT}.IOR  # write test
   srun -n $RANKS --ntasks-per-node $RPN ../IOR -r $OPTIONS >> ${OUT}.IOR  # read test
   rm $TESTDIR/IOR_file*
-  SEGMENTS=$(( $SEGMENTS/4 ))
 done
 rm -rf $TESTDIR
 chgrp fbench *

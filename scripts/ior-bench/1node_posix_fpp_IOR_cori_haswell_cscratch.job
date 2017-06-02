@@ -6,7 +6,6 @@ SCRDIR=$SCRATCH
 
 . /opt/modules/default/init/ksh
 module load python/2.7-anaconda
-module load lustre-cray_ari_s
 NOST=$(lfs df $SCRDIR | grep OST: | wc -l)  # number of OSTs in file system
 if (( $NOST == 0 )) ; then
   echo "Must be run on a Lustre file system. Not $SCRDIR"
@@ -25,13 +24,15 @@ SEGMENTS=$(( 206158/$RANKS ))   # SOW
 python report-ior.py initialize 1node_posix_fpp_write
 python report-ior.py initialize 1node_posix_fpp_read
 
-TRANSFER_SIZE=100000
+TRANSFER_SIZE=1000000
 OPTIONS="-a POSIX -F -C -e -g -k -b 1000000 -t $TRANSFER_SIZE -s $SEGMENTS -o $TESTDIR/IOR_file -v"
 OUT=${SLURM_JOB_NAME}_${RANKS}ranks_${TRANSFER_SIZE}_${JOBID}
+
 srun -n $RANKS --ntasks-per-node $RPN ../IOR -w $OPTIONS >> ${OUT}.IOR  # write test
 srun -n $RANKS --ntasks-per-node $RPN ../IOR -r $OPTIONS >> ${OUT}.IOR  # read test
 rm $TESTDIR/IOR_file*
 rm -rf $TESTDIR
 chgrp fbench *
+
 python report-ior.py finalize 1node_posix_fpp_write $(grep 'Max Write' ${OUT}.IOR | awk '{print $3}' )
 python report-ior.py finalize 1node_posix_fpp_read $(grep 'Max Read' ${OUT}.IOR | awk '{print $3}' )

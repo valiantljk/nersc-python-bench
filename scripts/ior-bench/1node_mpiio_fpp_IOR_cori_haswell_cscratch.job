@@ -2,8 +2,6 @@
 #SBATCH -N 1 --ntasks-per-node=32 -t 30 -J 1node_mpiio_fpp -p regular -C haswell --mail-type=FAIL --mail-user=jalnliu@lbl.gov --account=nstaff
 
 SCRDIR=$SCRATCH
-
-module load lustre-cray_ari_s
 module load python/2.7-anaconda
 NOST=$(lfs df $SCRDIR | grep OST: | wc -l)  # number of OSTs in file system
 if (( $NOST == 0 )) ; then
@@ -21,19 +19,21 @@ export IOR_HINT__MPI__romio_cb_write=disable
 
 RANKS=$(( $RPN ))     # only 1 node
 SEGMENTS=$(( 206158/$RANKS ))   # SOW
-# Initialize Benchmark Result
 
+# Initialize Benchmark Result
 python report-ior.py initialize 1node_mpiio_fpp_write
 python report-ior.py initialize 1node_mpiio_fpp_read
 
 TRANSFER_SIZE=1000000
 OPTIONS="-a MPIIO -F -C -g -k -b 1000000 -t $TRANSFER_SIZE -s $SEGMENTS -o $TESTDIR/IOR_file -v"
 OUT=${SLURM_JOB_NAME}_${RANKS}ranks_${TRANSFER_SIZE}_${JOBID}
+
 srun -n $RANKS --ntasks-per-node $RPN ../IOR -w $OPTIONS >> ${OUT}.IOR  # write test
 python report-ior.py finalize 1node_mpiio_fpp_write $(grep 'Max Write' ${OUT}.IOR | awk '{print $3}' )
 
 srun -n $RANKS --ntasks-per-node $RPN ../IOR -r $OPTIONS >> ${OUT}.IOR  # read test
 python report-ior.py finalize 1node_mpiio_fpp_read $(grep 'Max Read' ${OUT}.IOR | awk '{print $3}' )
+
 rm $TESTDIR/IOR_file*
 rm -rf $TESTDIR
 chgrp fbench *
