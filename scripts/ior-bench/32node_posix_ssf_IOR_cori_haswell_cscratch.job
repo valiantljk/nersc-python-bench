@@ -17,7 +17,7 @@ lfs setstripe -s 8m -c $NOST $TESTDIR || exit
 
 TRANSFER_SIZE=8 # in MiB
 DATA_TB=4       # total file size in TiB
-RPN=4           # ranks per node
+RPN=32           # ranks per node
 NODES=32        # max of 960 compute nodes
 RANKS=$(( $NODES * $RPN ))     # fully packed
 FPO=$(( $RANKS/$NOST ))        # files per OST
