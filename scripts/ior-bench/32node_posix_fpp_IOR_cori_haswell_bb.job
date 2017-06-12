@@ -1,6 +1,6 @@
 #!/bin/ksh
 #SBATCH -N 32 --ntasks-per-node=32 -t 30 -J 32node_posix_fpp_bb -p regular -C haswell --mail-type=FAIL --mail-user=jalnliu@lbl.gov --account=nstaff
-#DW jobdw capacity=5000GB access_mode=striped type=scratch
+#DW jobdw capacity=8000GB access_mode=striped type=scratch
 SCRDIR=$DW_JOB_STRIPED
 
 . /opt/modules/default/init/ksh
@@ -15,7 +15,6 @@ MPN_GB=192    # 1.5 of cori node memory, 128
 RPN=32        # ranks per node
 NODES=32      # 32 compute nodes
 RANKS=$(( $NODES * $RPN ))     # fully packed
-FPO=$(( $RANKS/$NOST ))        # files per OST
 SEGMENTS=$(( $MPN_GB*1024*1024*1024/$TRANSFER_SIZE/$RPN ))  
 JOBID=${SLURM_JOBID:-$$}
 python report-ior.py initialize 32node_posix_fpp_bb_write
