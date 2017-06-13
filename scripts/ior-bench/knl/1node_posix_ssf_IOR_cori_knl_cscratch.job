@@ -1,0 +1,38 @@
+#!/bin/ksh
+#SBATCH -N 1 --ntasks-per-node=32 -t 30 -J 1node_posix_ssf -p regular -C knl --mail-type=FAIL --mail-user=jalnliu@lbl.gov --account=nstaff
+SCRDIR=$SCRATCH
+
+. /opt/modules/default/init/ksh
+module load python/2.7-anaconda
+NOST=$(lfs df $SCRDIR | grep OST: | wc -l)  # number of OSTs in file system
+if (( $NOST == 0 )) ; then
+  echo "Must be run on a Lustre file system. Not $SCRDIR"
+  exit
+fi
+JOBID=${SLURM_JOBID:-$$}
+TESTDIR=${SCRDIR}/IOR_REGULAR/${SLURM_JOB_NAME}/${JOBID}
+rm -rf $TESTDIR
+mkdir -p $TESTDIR || exit
+
+RPN=${RPN:-16}        # ranks per node
+RANKS=$(( $RPN ))     # only 1 node
+#SEGMENTS=$(( 206158/$RANKS ))  # N8 SOW requirement (2x96 GiB)
+SEGMENTS=$(( 206158/$RANKS ))  # HopperPlus (2x128 GiB)
+# SEGMENTS=$(( 96000/$RANKS ))   # shorter test sizes
+lfs setstripe -S 1m -c $RPN $TESTDIR || exit
+
+python report-ior.py initialize 1node_posix_ssf_write 
+python report-ior.py initialize 1node_posix_ssf_read 
+
+TRANSFER_SIZE=1000000
+OPTIONS="-a POSIX -C -e -g -k -b 1000000 -t $TRANSFER_SIZE -s $SEGMENTS -o $TESTDIR/IOR_file -v"
+OUT=${SLURM_JOB_NAME}_${RANKS}ranks_${TRANSFER_SIZE}_${JOBID}
+
+srun -n $RANKS --ntasks-per-node $RPN ../IOR -w $OPTIONS >> ${OUT}.IOR  # write test
+srun -n $RANKS --ntasks-per-node $RPN ../IOR -r $OPTIONS >> ${OUT}.IOR  # read test
+rm $TESTDIR/IOR_file*  
+rm -rf $TESTDIR
+chgrp fbench *
+
+python report-ior.py finalize 1node_posix_ssf_write  $(grep 'Max Write' ${OUT}.IOR | awk '{print $3}' )
+python report-ior.py finalize 1node_posix_ssf_read  $(grep 'Max Read' ${OUT}.IOR | awk '{print $3}' )

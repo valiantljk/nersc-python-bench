@@ -8,3 +8,8 @@ for TEST in $DIR/*.job ; do
   echo Submit $TEST
   sbatch $SLURM_OPTS $TEST
 done
+cd $DIR/knl
+for TEST in $DIR/knl/*.job ; do
+  echo Submit $TEST
+  sbatch $SLURM_OPTS $TEST
+done

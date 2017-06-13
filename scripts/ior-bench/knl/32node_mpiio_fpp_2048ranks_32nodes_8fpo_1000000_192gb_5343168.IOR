@@ -1,0 +1,91 @@
+IOR-3.0.1: MPI Coordinated Test of Parallel I/O
+
+Began: Mon Jun 12 17:51:34 2017
+Command line used: /global/cscratch1/sd/fbench/nersc-ior-bench/ior-bench/scripts/ior-bench/knl/../IOR -a MPIIO -F -c -C -g -k -H -v -b 1000000 -t 1000000 -s 3221 -o /global/cscratch1/sd/fbench/IOR_REGULAR/32node_mpiio_fpp//IOR_file -w
+Machine: Linux nid03037
+Start time skew across all tasks: 0.33 sec
+
+Test 0 started: Mon Jun 12 17:51:34 2017
+Path: /global/cscratch1/sd/fbench/IOR_REGULAR/32node_mpiio_fpp
+FS: 27719.5 TiB   Used FS: 63.7%   Inodes: 5955.2 Mi   Used Inodes: 22.9%
+Participating tasks: 2048
+Using reorderTasks '-C' (expecting block, not cyclic, task assignment)
+Summary:
+	api                = MPIIO (version=3, subversion=1)
+	test filename      = /global/cscratch1/sd/fbench/IOR_REGULAR/32node_mpiio_fpp//IOR_file
+	access             = file-per-process, collective
+	pattern            = strided (3221 segments)
+	ordering in a file = sequential offsets
+	ordering inter file= constant task offsets = 1
+	clients            = 2048 (64 per node)
+	repetitions        = 1
+	xfersize           = 1000000 bytes
+	blocksize          = 1000000 bytes
+	aggregate filesize = 6143.57 GiB
+
+access    bw(MiB/s)  block(KiB) xfer(KiB)  open(s)    wr/rd(s)   close(s)   total(s)   iter
+------    ---------  ---------- ---------  --------   --------   --------   --------   ----
+
+hints passed to MPI_File_open() {
+	romio_cb_read = disable
+	romio_cb_write = disable
+}
+
+hints returned from opened file {
+	cb_buffer_size = 16777216
+	romio_cb_read = disable
+	romio_cb_write = disable
+	cb_nodes = 1
+	cb_align = 2
+	romio_no_indep_rw = false
+	romio_cb_pfr = disable
+	romio_cb_fr_types = aar
+	romio_cb_fr_alignment = 1
+	romio_cb_ds_threshold = 0
+	romio_cb_alltoall = automatic
+	ind_rd_buffer_size = 4194304
+	ind_wr_buffer_size = 524288
+	romio_ds_read = disable
+	romio_ds_write = disable
+	striping_factor = 1
+	striping_unit = 1048576
+	romio_lustre_start_iodevice = 0
+	direct_io = false
+	aggregator_placement_stride = -1
+	abort_on_rw_error = disable
+	cb_config_list = *:*
+	romio_filesystem_type = CRAY ADIO:
+}
+write     46394      976.56     976.56     1.20       134.09     0.266598   135.60     0   
+
+Max Write: 46393.83 MiB/sec (48647.46 MB/sec)
+
+Summary of all tests:
+Operation   Max(MiB)   Min(MiB)  Mean(MiB)     StdDev    Mean(s) Test# #Tasks tPN reps fPP reord reordoff reordrand seed segcnt blksiz xsize aggsize API RefNum
+write       46393.83   46393.83   46393.83       0.00  135.60026 0 2048 64 1 1 1 1 0 0 3221 1000000 1000000 6596608000000 MPIIO 0
+
+Finished: Mon Jun 12 17:53:51 2017
+IOR-3.0.1: MPI Coordinated Test of Parallel I/O
+
+Began: Mon Jun 12 17:54:34 2017
+Command line used: /global/cscratch1/sd/fbench/nersc-ior-bench/ior-bench/scripts/ior-bench/knl/../IOR -a MPIIO -F -c -C -g -k -H -v -b 1000000 -t 1000000 -s 3221 -o /global/cscratch1/sd/fbench/IOR_REGULAR/32node_mpiio_fpp//IOR_file -r
+Machine: Linux nid03037
+Start time skew across all tasks: 0.33 sec
+
+Test 0 started: Mon Jun 12 17:54:34 2017
+Path: /global/cscratch1/sd/fbench/IOR_REGULAR/32node_mpiio_fpp
+FS: 27719.5 TiB   Used FS: 63.8%   Inodes: 5955.2 Mi   Used Inodes: 22.9%
+Participating tasks: 2048
+Using reorderTasks '-C' (expecting block, not cyclic, task assignment)
+Summary:
+	api                = MPIIO (version=3, subversion=1)
+	test filename      = /global/cscratch1/sd/fbench/IOR_REGULAR/32node_mpiio_fpp//IOR_file
+	access             = file-per-process, collective
+	pattern            = strided (3221 segments)
+	ordering in a file = sequential offsets
+	ordering inter file= constant task offsets = 1
+	clients            = 2048 (64 per node)
+	repetitions        = 1
+	xfersize           = 1000000 bytes
+	blocksize          = 1000000 bytes
+	aggregate filesize = 6143.57 GiB

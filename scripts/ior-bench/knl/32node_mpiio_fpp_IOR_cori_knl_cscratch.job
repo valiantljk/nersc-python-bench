@@ -1,0 +1,41 @@
+#!/bin/ksh
+#SBATCH -N 32 --ntasks-per-node=64 -t 30 -J 32node_mpiio_fpp -p regular -C knl --mail-type=FAIL --mail-user=jalnliu@lbl.gov --account=nstaff
+SCRDIR=$SCRATCH
+
+. /opt/modules/default/init/ksh
+module load lustre-cray_ari_s
+module load python/2.7-anaconda
+NOST=$(lfs df $SCRDIR | grep OST: | wc -l)  # number of OSTs in file system
+if (( $NOST == 0 )) ; then
+  echo "Must be run on a Lustre file system. Not $SCRDIR"
+  exit
+fi
+TESTDIR=$SCRDIR/IOR_REGULAR/$SLURM_JOB_NAME/${JOBID}
+rm -rf $TESTDIR
+mkdir -p $TESTDIR || exit
+lfs setstripe -S 1m -c 1 $TESTDIR || exit
+
+python report-ior.py initialize 32node_mpiio_fpp_write 
+python report-ior.py initialize 32node_mpiio_fpp_read 
+
+TRANSFER_SIZE=1000000
+MPN_GB=192    # 1.5 of cori node memory, 128
+RPN=64        # ranks per node
+NODES=32      # 
+RANKS=$(( $NODES * $RPN ))     # fully packed
+SEGMENTS=$(( $MPN_GB*1024*1024*1024/$TRANSFER_SIZE/$RPN ))
+JOBID=${SLURM_JOBID:-$$}
+FPO=$(( $RANKS/$NOST ))        # files per OST
+OPTIONS="-a MPIIO -F -c -C -g -k -H -v -b $TRANSFER_SIZE -t $TRANSFER_SIZE -s $SEGMENTS  -o $TESTDIR/IOR_file"
+
+export IOR_HINT__MPI__romio_cb_read=disable
+export IOR_HINT__MPI__romio_cb_write=disable
+
+OUT=${SLURM_JOB_NAME}_${RANKS}ranks_${NODES}nodes_${FPO}fpo_${TRANSFER_SIZE}_${MPN_GB}gb_${JOBID}
+srun -n $RANKS --ntasks-per-node $RPN  ../IOR $OPTIONS -w  >> ${OUT}.IOR
+python report-ior.py finalize 32node_mpiio_fpp_write  $(grep 'Max Write' ${OUT}.IOR | awk '{print $3}' )
+
+srun -n $RANKS --ntasks-per-node $RPN  ../IOR $OPTIONS -r  >> ${OUT}.IOR
+python report-ior.py finalize 32node_mpiio_fpp_read  $(grep 'Max Read' ${OUT}.IOR | awk '{print $3}' )
+rm -rf $TESTDIR
+chgrp fbench *

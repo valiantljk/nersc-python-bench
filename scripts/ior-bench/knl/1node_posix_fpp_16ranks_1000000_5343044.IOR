@@ -1,0 +1,36 @@
+IOR-3.0.1: MPI Coordinated Test of Parallel I/O
+
+Began: Mon Jun 12 17:34:22 2017
+Command line used: /global/cscratch1/sd/fbench/nersc-ior-bench/ior-bench/scripts/ior-bench/knl/../IOR -r -a POSIX -F -C -e -g -k -b 1000000 -t 1000000 -s 12884 -o /global/cscratch1/sd/fbench/IOR_REGULAR/1node_posix_fpp/5343044/IOR_file -v
+Machine: Linux nid07559
+Start time skew across all tasks: 0.00 sec
+
+Test 0 started: Mon Jun 12 17:34:22 2017
+Path: /global/cscratch1/sd/fbench/IOR_REGULAR/1node_posix_fpp/5343044
+FS: 27719.5 TiB   Used FS: 63.7%   Inodes: 5955.2 Mi   Used Inodes: 22.9%
+Participating tasks: 16
+Using reorderTasks '-C' (expecting block, not cyclic, task assignment)
+Summary:
+	api                = POSIX
+	test filename      = /global/cscratch1/sd/fbench/IOR_REGULAR/1node_posix_fpp/5343044/IOR_file
+	access             = file-per-process
+	pattern            = strided (12884 segments)
+	ordering in a file = sequential offsets
+	ordering inter file= constant task offsets = 1
+	clients            = 16 (16 per node)
+	repetitions        = 1
+	xfersize           = 1000000 bytes
+	blocksize          = 1000000 bytes
+	aggregate filesize = 191.99 GiB
+
+access    bw(MiB/s)  block(KiB) xfer(KiB)  open(s)    wr/rd(s)   close(s)   total(s)   iter
+------    ---------  ---------- ---------  --------   --------   --------   --------   ----
+read      1628.52    976.56     976.56     0.009901   120.70     0.006493   120.72     0   
+
+Max Read:  1628.52 MiB/sec (1707.63 MB/sec)
+
+Summary of all tests:
+Operation   Max(MiB)   Min(MiB)  Mean(MiB)     StdDev    Mean(s) Test# #Tasks tPN reps fPP reord reordoff reordrand seed segcnt blksiz xsize aggsize API RefNum
+read         1628.52    1628.52    1628.52       0.00  120.71971 0 16 16 1 1 1 1 0 0 12884 1000000 1000000 206144000000 POSIX 0
+
+Finished: Mon Jun 12 17:36:23 2017

@@ -1,0 +1,32 @@
+#!/bin/ksh
+#SBATCH -N 32 --ntasks-per-node=64 -t 30 -J 32node_posix_fpp_bb -p regular -C knl --mail-type=FAIL --mail-user=jalnliu@lbl.gov --account=nstaff
+#DW jobdw capacity=8000GB access_mode=striped type=scratch
+SCRDIR=$DW_JOB_STRIPED
+
+. /opt/modules/default/init/ksh
+module load python/2.7-anaconda
+module load dws
+TESTDIR=$SCRDIR/IOR_REGULAR/$SLURM_JOB_NAME/${JOBID}
+rm -rf $TESTDIR
+mkdir -p $TESTDIR || exit
+
+TRANSFER_SIZE=1000000
+MPN_GB=192    # 1.5 of cori node memory, 128
+RPN=64        # ranks per node
+NODES=32      # 32 compute nodes
+RANKS=$(( $NODES * $RPN ))     # fully packed
+SEGMENTS=$(( $MPN_GB*1024*1024*1024/$TRANSFER_SIZE/$RPN ))  
+JOBID=${SLURM_JOBID:-$$}
+python report-ior.py initialize 32node_posix_fpp_bb_write 
+python report-ior.py initialize 32node_posix_fpp_bb_read 
+OPTIONS="-a POSIX -H -F -C -e -g -k -b $TRANSFER_SIZE -t $TRANSFER_SIZE -s $SEGMENTS -o $TESTDIR/IOR_file -v"
+OUT=${SLURM_JOB_NAME}_${RANKS}ranks_${NODES}nodes_${FPO}fpo_${TRANSFER_SIZE}_${MPN_GB}gb_${JOBID}
+
+srun -n $RANKS --ntasks-per-node $RPN ../IOR -w $OPTIONS >> ${OUT}.IOR  # write test
+python report-ior.py finalize 32node_posix_fpp_bb_write  $(grep 'Max Write' ${OUT}.IOR | awk '{print $3}' )
+
+srun -n $RANKS --ntasks-per-node $RPN ../IOR -r $OPTIONS >> ${OUT}.IOR  # read test
+python report-ior.py finalize 32node_posix_fpp_bb_read  $(grep 'Max Read' ${OUT}.IOR | awk '{print $3}' )
+
+rm -rf $TESTDIR
+chgrp fbench *

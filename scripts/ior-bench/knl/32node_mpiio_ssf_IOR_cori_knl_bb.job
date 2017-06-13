@@ -1,0 +1,39 @@
+#!/bin/ksh
+#SBATCH -N 32 --ntasks-per-node=64 -t 30 -J 32node_mpiio_ssf_bb -p regular -C knl --mail-type=FAIL --mail-user=jalnliu@lbl.gov --account=nstaff
+#DW jobdw capacity=5000GB  access_mode=striped type=scratch
+SCRDIR=$DW_JOB_STRIPED
+
+. /opt/modules/default/init/ksh
+module load python/2.7-anaconda
+module load dws
+JOBID=${SLURM_JOBID:-$$}
+TESTDIR=$SCRDIR/IOR_REGULAR/$SLURM_JOB_NAME/$JOBID
+rm -rf $TESTDIR
+mkdir -p $TESTDIR || exit
+# MULTIPLIER=6
+TRANSFER_SIZE=8 # in MiB
+STRIPE_SIZE=8   # in MiB
+DATA_TB=4       # total file size in TiB, nodes*memory, 32*128/1024
+RPN=64          # ranks per node
+NODES=32        # 
+RANKS=$(( $NODES * $RPN ))     # fully packed
+SEGMENTS=$(( $DATA_TB*1024*1024/$TRANSFER_SIZE/$RANKS ))
+
+OPTIONS="-a MPIIO -c -C -g -b ${TRANSFER_SIZE}m -t ${TRANSFER_SIZE}m -k -H -v -o $TESTDIR/IOR_file"
+
+export IOR_HINT__MPI__romio_cb_read=disable
+export IOR_HINT__MPI__romio_cb_write=disable
+
+python report-ior.py initialize 32node_mpiio_ssf_bb_write 
+python report-ior.py initialize 32node_mpiio_ssf_bb_read 
+
+OUT=${SLURM_JOB_NAME}_${RANKS}ranks_${RPN}rpn_${NOST}osts_${NODES}nodes_${JOBID}
+
+srun -n $RANKS --ntasks-per-node $RPN  ../IOR $OPTIONS -w -s $SEGMENTS >> ${OUT}.IOR
+python report-ior.py finalize 32node_mpiio_ssf_bb_write  $(grep 'Max Write' ${OUT}.IOR | awk '{print $3}' )
+
+srun -n $RANKS --ntasks-per-node $RPN  ../IOR $OPTIONS -r -s $SEGMENTS >> ${OUT}.IOR
+python report-ior.py finalize 32node_mpiio_ssf_bb_read  $(grep 'Max Read' ${OUT}.IOR | awk '{print $3}' )
+
+rm -rf $TESTDIR
+chgrp fbench *
